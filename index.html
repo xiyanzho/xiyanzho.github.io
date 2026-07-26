@@ -4,12 +4,181 @@
   <meta charset="UTF-8">
   <title>Xiyan Zhou</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <meta name="description" content="Xiyan Zhou — CS & Mathematics, University of Michigan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css?v=11">
 </head>
 <body>
-  <main>
-    <h1>Xiyan Zhou</h1>
-    <p class="subtitle">CS & Mathematics · University of Michigan</p>
-  </main>
+  <div class="wrap">
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="masthead">
+      <div class="id">
+        <div class="id-row">
+          <img class="avatar" src="assets/images/selfie.png" alt="Xiyan Zhou"
+               onerror="this.style.display='none'">
+          <div>
+            <h1>Xiyan Zhou</h1>
+            <p class="affil">CS &amp; Mathematics · University of Michigan</p>
+            <p class="email">xiyanzho@umich.edu</p>
+            <nav class="links">
+              <a href="assets/pdf/Xiyan_Zhou_cv.pdf">cv</a>
+              <a href="https://www.linkedin.com/in/xiyan-zhou-3881732b3/">linkedin</a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Affiliation badges -->
+        <div class="affiliations">
+          <a class="brand" href="https://lsa.umich.edu/math" title="U-M Mathematics">
+            <span class="brand-badge">Mathematics</span>
+          </a>
+          <a class="brand" href="https://cse.engin.umich.edu" title="Michigan Computer Science &amp; Engineering">
+            <span class="brand-badge">Computer Science</span>
+          </a>
+          <a class="brand" href="https://engin.umich.edu" title="Michigan Engineering">
+            <span class="brand-badge">Michigan Engineering</span>
+          </a>
+          <a class="brand" href="https://umtri.umich.edu" title="U-M Transportation Research Institute">
+            <span class="brand-badge">UMTRI</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================== ABOUT ===================== -->
+    <section id="about">
+      <h2>about</h2>
+      <p>
+        I am an undergraduate at the University of Michigan pursuing a double
+        major in Computer Science and Mathematics. My coursework has leaned
+        heavily toward the mathematical side of computing: measure theory, real
+        analysis, convex optimization, probability, and numerical linear
+        algebra. Such grounding draws me to machine learning: I like
+        problems where careful mathematics and empirical systems meet.
+      </p>
+      <p>
+        I expect to graduate in December 2026 and am applying to PhD programs in
+        machine learning for 2027 entry.
+      </p>
+
+    </section>
+
+    <!-- ===================== RESEARCH ===================== -->
+    <section id="research">
+      <h2>research</h2>
+      <p>
+        I am broadly interested in reinforcement learning and in applying
+        learning-based methods to biomechanical problems. I enjoy
+        work that connects mathematical foundations in optimization and
+        probability with empirical systems.
+      </p>
+
+      <div class="entry">
+        <figure class="entry-fig">
+          <img src="assets/images/muscle-segmentation.jpg"
+               alt="Per-muscle segmentation of a thigh from a clinical CT slice, each muscle shaded a different color">
+          <figcaption>Per-muscle segmentation from clinical CT</figcaption>
+        </figure>
+        <div class="title">Quantifying Thigh Muscle Variability via Automated CT Segmentation</div>
+        <div class="authors">Undergraduate Research Assistant · advised by <a href="https://ioe.engin.umich.edu/people/jingwen-hu/">Prof. Jingwen Hu</a> (UMTRI) · IOE SURE Program · May 2026 – Present</div>
+        <p class="desc">
+          Building the lower-extremity muscle segmentation component of UMTRI's
+          <a href="https://humanshape.org/HERMES/MDP_web_public/#about">HERMES</a> human body model. Established an automated CT preprocessing
+          pipeline and a hand-labeled 3D ground-truth dataset (45 clinical scans)
+          to fine tune the nnU-Net architecture behind TotalSegmentator so it can
+          resolve individual thigh muscles. Outputs preserve the muscle
+          orientation and cross-sectional area needed for active crash modeling.
+        </p>
+        <div class="meta-links">
+          <a href="assets/pdf/SURE_poster.pdf">poster</a>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="title">Motion Planning via Contrastive Reinforcement Learning</div>
+        <div class="authors">Research Assistant · advised by <a href="https://kellenkanarios.com/index/">Kellen Kanarios</a> · Jan 2026 – Present</div>
+        <p class="desc">
+          Studying goal-conditioned contrastive RL with a Gumbel-Softmax actor for
+          discrete action spaces, extending the JaxGCRL framework by replacing
+          continuous distributions with categorical logits. Investigating
+          within-episode distribution shift as a failure mode of the contrastive
+          objective — complementary to the state–goal mapping limitations raised
+          by Matthews et al., <em>Goal-Conditioned Agents that Learn Everything
+          All at Once</em>. Implementing double Q-learning with a planned
+          hierarchical extension, validated on Navix grid-world environments.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== PROJECTS ===================== -->
+    <section id="projects">
+      <h2>projects</h2>
+
+      <div class="entry">
+        <div class="title">Replicating and Extending SimGRL: Robustness in Visual RL under Dynamic Scene Perturbations</div>
+        <p class="desc">
+          Replicated the SimGRL visual-RL framework (PyTorch, DMControl) and
+          designed four data-augmentation extensions — Irregular-SRO,
+          Multi-Source SRO, Hybrid-SRO, and Mask-Guided — to mitigate
+          observational overfitting. Ran ablation studies on the Great Lakes HPC
+          cluster; the Hybrid-SRO variant significantly reduced performance
+          variance, giving a more stable training protocol for high-dimensional
+          visual control.
+        </p>
+      </div>
+
+      <div class="entry">
+        <div class="title">Predicting ICU Mortality</div>
+        <p class="desc">
+          Built a logistic-regression model for 30-day ICU mortality using
+          engineered features such as instability scores, crossover counts, and
+          time-windowed statistics. Applied KNN imputation, feature selection, and
+          threshold tuning to balance AUROC and F1 for clinical relevance.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== TEACHING ===================== -->
+    <section id="teaching">
+      <h2>teaching</h2>
+
+      <div class="entry">
+        <div class="title">MATH 571 — Numerical Linear Algebra <span class="note">(graduate course)</span></div>
+        <div class="authors">Grader · Fall 2025</div>
+      </div>
+
+      <div class="entry">
+        <div class="title">MATH 371 — Numerical Methods</div>
+        <div class="authors">Grader · Fall 2025, Winter 2026</div>
+      </div>
+
+      <div class="entry">
+        <div class="title">Math Lab Tutor</div>
+        <div class="authors">University of Michigan · Fall 2024 – Winter 2026</div>
+      </div>
+    </section>
+
+    <!-- ===================== BLOG ===================== -->
+    <section id="blog">
+      <h2>notes &amp; writing</h2>
+      <ul class="posts">
+        <!-- Add a new <li> per post; newest at the top. Example:
+        <li>
+          <a href="blog/my-post.html">Post title</a>
+          <span class="date">2026-08-01</span>
+        </li> -->
+      </ul>
+      <p class="empty-note"><em>Coming soon.</em></p>
+    </section>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer>
+      © 2026 Xiyan Zhou
+    </footer>
+
+  </div>
 </body>
 </html>
