@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goal-Conditioned Contrastive RL — Xiyan Zhou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Goal-conditioned contrastive reinforcement learning in discrete action spaces — project notes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css?v=13">
+</head>
+<body>
+  <div class="wrap">
+
+    <a class="back-link" href="../index.html">← back</a>
+
+    <article class="post">
+      <h1>Goal-Conditioned Contrastive Reinforcement Learning in Discrete Action Spaces</h1>
+      <div class="post-date">
+        Research Assistant · advised by <a href="https://kellenkanarios.com/index/">Kellen Kanarios</a> · Jan 2026 – Present
+      </div>
+
+      <p>
+        Goal-conditioned RL asks for a single policy <em>π(a | s, g)</em> that can
+        reach any goal <em>g</em>, learned from unlabeled experience with no reward
+        signal beyond "did you arrive." Contrastive RL (Eysenbach et al., 2022)
+        approaches this without temporal-difference learning at all: instead of
+        bootstrapping a value function, it trains a critic by classification, so
+        that <em>f(s, a, g)</em> estimates the density ratio of the discounted
+        future-state occupancy — how much more likely <em>g</em> is to occur later
+        given action <em>a</em> in state <em>s</em>, relative to a random goal. The
+        critic becomes a representation-learning objective rather than a
+        bootstrapped one, which removes target networks and the usual sources of
+        TD instability.
+      </p>
+      <p>
+        This project reimplements that method in JAX and adapts it to discrete
+        action spaces, with the long-horizon crafting environment Craftax as the
+        eventual target. My role is implementation and experiment design; Kellen
+        sets algorithmic direction.
+      </p>
+
+      <h2>method</h2>
+      <p>
+        The critic is bilinear, <em>f(s, a, g) = φ(s, a) · ψ(g) / √d</em>, with
+        φ and ψ as ensembled MLP encoders and a choice of energy function
+        (negative L2, dot product, or cosine). Positives are drawn by sampling,
+        for each timestep, a future goal from the same trajectory under geometric
+        weighting <em>γ<sup>Δt</sup></em> — the discounted-occupancy sampler.
+        Negatives are the other goals in the batch, giving a B×B logit matrix
+        whose diagonal holds the positives, trained under InfoNCE and related
+        binary-classification variants. Stability comes from the logsumexp penalty
+        of the original paper, projection of the encoders onto a sphere of radius
+        √d, and masking of false negatives where two batch elements happen to
+        share a goal.
+      </p>
+      <p>
+        For continuous control the actor is standard SAC. The discrete case is the
+        substantive change: the actor is trained through a Gumbel-Softmax
+        relaxation with an annealed temperature and an entropy coefficient adapted
+        to a target fraction of <em>log|A|</em>. Actor goals are sampled uniformly
+        from the batch rather than from the future of the current trajectory,
+        since future-only goals would train the policy to reach only states it
+        already visits. The whole training loop is jitted end-to-end over vmapped
+        environments, with a wrapper stack supplying goals, trajectory ids, and
+        autoreset across the brax, navix, gymnax, and craftax suites alongside my
+        own environments.
+      </p>
+
+      <h2>environments</h2>
+      <p>
+        Rather than moving straight to Craftax, I built a sequence of grid worlds
+        that each isolate a single hypothesis about what the contrastive objective
+        can represent.
+      </p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Environment</th><th>Question it isolates</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>8×8 navigation</td>
+              <td>Can the bilinear critic rank actions at all, in a fully trusted discrete testbed?</td>
+              <td>0.85 (random 0.06)</td>
+            </tr>
+            <tr>
+              <td>Inventory, fixed layout</td>
+              <td>Abstract, position-invariant goals — "hold three wood, anywhere" — under a thermometer encoding.</td>
+              <td>0.68</td>
+            </tr>
+            <tr>
+              <td>Foraging</td>
+              <td>Remove memorization: resources deplete and respawn, layout randomized every episode.</td>
+              <td>0.08</td>
+            </tr>
+            <tr>
+              <td>Key-and-door</td>
+              <td>Causal prerequisites — does the method plan, or only react?</td>
+              <td>built, not yet run</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>what worked</h2>
+      <p>
+        A purely bilinear contrastive critic, with no forward model and no
+        auxiliary losses, solves discrete navigation (0.85 against a 0.06 random
+        baseline, on a grid an oracle solves 99.8% of the time) and transfers to
+        the Navix benchmark at 0.92 against 0.21.
+      </p>
+      <p>
+        The more interesting result is the inventory environment, where goals are
+        abstract and many-to-one: a goal specifies a resource count, not a
+        location, so a great many states satisfy it. At 0.68 success the obvious
+        worry is that the agent has simply learned to collect everything, so I ran
+        three checks against that. Success degrades gracefully with goal
+        difficulty rather than falling off a cliff (0.97 / 0.70 / 0.46 across easy,
+        medium and hard goal buckets). The final inventory is roughly nine times
+        richer in the commanded resource than in the others (4.76 against 0.53).
+        And a policy trained only on static goals generalizes zero-shot to a
+        moving target — a goal recomputed every step as "one more than you
+        currently hold" — sustaining collection to the environment cap, a
+        distribution it never saw in training.
+      </p>
+
+      <h2>a metric that lies</h2>
+      <p>
+        A finding that recurs across every environment: the contrastive training
+        metric is decoupled from control quality, and at times inverted.
+      </p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Critic</th><th>Contrastive accuracy</th><th>Eval success</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Action-blind</td><td>0.55</td><td>0.03</td></tr>
+            <tr><td>Correct</td><td>0.08</td><td>0.85</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        The reason is structural. Contrastive accuracy measures whether the true
+        future state outranks other states in the batch, which a critic that
+        ignores its action argument entirely can do perfectly well. Control
+        requires the opposite comparison: ranking actions against each other at a
+        fixed state and goal. InfoNCE never places two same-state,
+        different-action pairs in contrast, so nothing in the loss directly
+        pressures the representation to be action-discriminative. The objective is
+        measuring one axis while evaluation depends on another.
+      </p>
+      <p>
+        This is why the diagnostics I found most useful were the ones that bypass
+        the training loss altogether — rolling out
+        <em>argmax<sub>a</sub> f(s, a, g)</em> directly to attribute failure to the
+        critic rather than the actor, and consistency probes that check whether the
+        data reaching the critic means what the loss assumes it means.
+      </p>
+
+      <h2>where it breaks</h2>
+      <p>
+        Matthews et al., <em>Goal-Conditioned Agents that Learn Everything All at
+        Once</em> (ICML 2026), argue that in procedurally generated worlds
+        state-based goals are meaningless, and that methods assuming a functional
+        state-to-goal mapping — contrastive RL named explicitly — "cannot natively
+        handle" the setting.
+      </p>
+      <p>
+        I converted the inventory environment into exactly that regime. Resources
+        deplete on collection and respawn elsewhere, the layout is redrawn every
+        episode, and the agent must read a sparse resource map from its
+        observation instead of memorizing where things are. The algorithm, the
+        goal space, and the code are unchanged; only layout randomization was
+        added. Success collapses from 0.68 to 0.08, medium and hard goals fall to
+        zero, and selectivity inverts — the agent ends up holding <em>more</em> of
+        the resources it was not asked for. The critic, meanwhile, keeps training
+        happily.
+      </p>
+      <p>
+        The tension worth pursuing is that this is not quite the predicted failure.
+        The same method already succeeds on abstract, many-to-one,
+        position-invariant inventory goals, which is close to the case the paper
+        says should not work; what breaks it is procedural randomization
+        specifically. Candidate mechanisms I can distinguish experimentally: the
+        sparse resource map being washed out by normalization; the goal encoder
+        being inventory-only, so that all spatial reasoning is forced into the
+        state encoder; and uniform goal sampling for the actor being too hard a
+        curriculum in this regime. The key-and-door environment is the follow-up
+        diagnostic, separating "cannot handle procedural generation" from "cannot
+        represent causal, multi-step plans" — though it carries a confound I have
+        yet to resolve, since aliasing every state to a two-dimensional goal makes
+        most in-batch negatives secretly positive.
+      </p>
+
+      <h2>status and limitations</h2>
+      <p>
+        Stated plainly: results so far are single-seed and CPU-only, without error
+        bars or external baselines run in the same harness, so the 0.68-to-0.08
+        comparison is a controlled one-variable manipulation but not yet a
+        statistically supported claim. The key-and-door environment is built and
+        smoke-tested but has not been trained. The repository is named for a
+        planned hierarchical extension toward Craftax that has not been started —
+        making flat contrastive RL correct on discrete actions, and characterizing
+        where it fails, turned out to be a substantial project on its own.
+      </p>
+    </article>
+
+    <footer>
+      © 2026 Xiyan Zhou
+    </footer>
+
+  </div>
+</body>
+</html>

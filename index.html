@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/style.css?v=12">
+  <link rel="stylesheet" href="assets/css/style.css?v=13">
 </head>
 <body>
   <div class="wrap">
@@ -98,18 +98,23 @@
       </div>
 
       <div class="entry">
-        <div class="title">Motion Planning via Contrastive Reinforcement Learning</div>
+        <div class="title">Goal-Conditioned Contrastive Reinforcement Learning in Discrete Action Spaces</div>
         <div class="authors">Research Assistant · advised by <a href="https://kellenkanarios.com/index/">Kellen Kanarios</a> · Jan 2026 – Present</div>
         <p class="desc">
-          Studying goal-conditioned contrastive RL with a Gumbel-Softmax actor for
-          discrete action spaces, extending the JaxGCRL framework by replacing
-          continuous distributions with categorical logits. Investigating
-          within-episode distribution shift as a failure mode of the contrastive
-          objective — complementary to the state–goal mapping limitations raised
-          by Matthews et al., <em>Goal-Conditioned Agents that Learn Everything
-          All at Once</em>. Implementing double Q-learning with a planned
-          hierarchical extension, validated on Navix grid-world environments.
+          Reimplementing contrastive RL in JAX and adapting it to discrete
+          control, where the critic is learned by classification against in-batch
+          negatives rather than by bootstrapped TD updates. I build grid-world
+          benchmarks that each isolate one hypothesis about what the contrastive
+          objective can represent, and use them to show that a purely bilinear
+          critic handles both spatial and abstract inventory goals — then breaks
+          under procedural layout randomization, the regime Matthews et al.
+          (<em>Goal-Conditioned Agents that Learn Everything All at Once</em>)
+          claim contrastive RL cannot natively handle. A recurring theme is that
+          the contrastive training metric is decoupled from control quality.
         </p>
+        <div class="meta-links">
+          <a class="internal" href="research/contrastive-rl.html">project notes</a>
+        </div>
       </div>
     </section>
 

@@ -239,6 +239,7 @@ h2::after {
   transition: background .15s, border-color .15s, color .15s;
 }
 .entry .meta-links a::after { content: "↗"; font-size: 0.9em; opacity: 0.75; }
+.entry .meta-links a.internal::after { content: "→"; }
 .entry .meta-links a:hover {
   background: var(--accent);
   border-color: var(--accent);
@@ -318,6 +319,42 @@ article.post pre {
   font-size: 0.85rem;
 }
 article.post code { font-family: var(--mono); font-size: 0.9em; }
+
+/* section headings inside a post: no "#" marker, tighter spacing */
+article.post h2 { margin: 2.4rem 0 0.9rem; font-size: 1rem; }
+article.post h2::before { content: none; }
+
+/* ---- data tables ---- */
+.table-scroll { overflow-x: auto; margin: 1.3rem 0 1.5rem; }
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+.data-table thead th {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+  white-space: nowrap;
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody td:first-child { font-weight: 600; white-space: nowrap; }
+.data-table tbody td:last-child { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
 
 .back-link {
   display: inline-block;
