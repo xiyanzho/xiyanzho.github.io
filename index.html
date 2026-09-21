@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Xiyan Zhou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Xiyan Zhou — CS & Mathematics, University of Michigan.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css?v=14">
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ===================== HEADER ===================== -->
+    <header class="masthead">
+      <div class="id">
+        <div class="id-row">
+          <img class="avatar" src="assets/images/selfie.png" alt="Xiyan Zhou"
+               onerror="this.style.display='none'">
+          <div>
+            <h1>Xiyan Zhou</h1>
+            <p class="affil">CS &amp; Mathematics · University of Michigan</p>
+            <p class="email">xiyanzho@umich.edu</p>
+            <nav class="links">
+              <a href="assets/pdf/Xiyan_Zhou_cv.pdf">cv</a>
+              <a href="https://www.linkedin.com/in/xiyan-zhou-3881732b3/">linkedin</a>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Affiliation badges -->
+        <div class="affiliations">
+          <a class="brand" href="https://lsa.umich.edu/math" title="U-M Mathematics">
+            <span class="brand-badge">Mathematics</span>
+          </a>
+          <a class="brand" href="https://cse.engin.umich.edu" title="Michigan Computer Science &amp; Engineering">
+            <span class="brand-badge">Computer Science</span>
+          </a>
+          <a class="brand" href="https://engin.umich.edu" title="Michigan Engineering">
+            <span class="brand-badge">Michigan Engineering</span>
+          </a>
+          <a class="brand" href="https://umtri.umich.edu" title="U-M Transportation Research Institute">
+            <span class="brand-badge">UMTRI</span>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================== ABOUT ===================== -->
+    <section id="about">
+      <h2>about</h2>
+      <p>
+        I am an undergraduate at the University of Michigan pursuing a double
+        major in Computer Science and Mathematics. My coursework has leaned
+        heavily toward the mathematical side of computing: measure theory, real
+        analysis, convex optimization, probability, and numerical linear
+        algebra. Such grounding draws me to machine learning: I like
+        problems where careful mathematics and empirical systems meet.
+      </p>
+      <p>
+        I expect to graduate in December 2026 and am applying to PhD programs in
+        machine learning for 2027 entry.
+      </p>
+
+    </section>
+
+    <!-- ===================== RESEARCH ===================== -->
+    <section id="research">
+      <h2>research</h2>
+      <p>
+        I am broadly interested in reinforcement learning and in applying
+        learning-based methods to biomechanical problems. I enjoy
+        work that connects mathematical foundations in optimization and
+        probability with empirical systems.
+      </p>
+
+      <div class="entry">
+        <figure class="entry-fig">
+          <img src="assets/images/muscle-segmentation.jpg"
+               alt="Per-muscle segmentation of a thigh from a clinical CT slice, each muscle shaded a different color">
+          <figcaption>Per-muscle segmentation from clinical CT</figcaption>
+        </figure>
+        <div class="title">Quantifying Thigh Muscle Variability via Automated CT Segmentation</div>
+        <div class="authors">Undergraduate Research Assistant · advised by <a href="https://ioe.engin.umich.edu/people/jingwen-hu/">Prof. Jingwen Hu</a> (UMTRI) · IOE SURE Program · May 2026 – Present</div>
+        <p class="desc">
+          Building the lower-extremity muscle segmentation component of UMTRI's
+          <a href="https://humanshape.org/HERMES/MDP_web_public/#about">HERMES</a> human body model. Established an automated CT preprocessing
+          pipeline and a hand-labeled 3D ground-truth dataset (45 clinical scans)
+          to fine tune the nnU-Net architecture behind TotalSegmentator so it can
+          resolve individual thigh muscles. Outputs preserve the muscle
+          orientation and cross-sectional area needed for active crash modeling.
+        </p>
+        <div class="meta-links">
+          <a href="assets/pdf/SURE_poster.pdf">poster</a>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="title">Goal-Conditioned Contrastive Reinforcement Learning in Discrete Action Spaces</div>
+        <div class="authors">Research Assistant · advised by <a href="https://kellenkanarios.com/index/">Kellen Kanarios</a> · Jan 2026 – Present</div>
+        <p class="desc">
+          Reimplementing contrastive RL in JAX and adapting it to discrete
+          control, where the critic is learned by classification against in-batch
+          negatives rather than by bootstrapped TD updates. I build grid-world
+          benchmarks that each isolate one hypothesis about what the contrastive
+          objective can represent. The central finding is that goal-conditioned
+          critics stop discriminating between actions when a goal admits more
+          than one satisfying state: success and a direct probe of the critic
+          ("critic lift") fall with the number of satisfiers rather than with
+          task difficulty. The effect replicates as a dose-response in a second
+          environment, is isolated by a control that changes only the goal's
+          form, and also appears in a matched Double-DQN baseline — so it is a
+          property of goal-conditioned value learning, not of the contrastive
+          objective alone. Getting there meant correcting ourselves: an earlier
+          sharp collapse was an artifact of the InfoNCE direction, and re-running
+          everything on the corrected configuration withdrew three claims while
+          the underlying effect held. We are preparing a preprint.
+        </p>
+        <div class="meta-links">
+          <a class="internal" href="research/contrastive-rl.html">project notes</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== PROJECTS ===================== -->
+    <section id="projects">
+      <h2>projects</h2>
+
+      <div class="entry">
+        <div class="title">A Diagnostic Study of Sparsity-Promoting ADMM for Multi-Obstacle Trajectory Optimization</div>
+        <div class="authors">Independent course research project · ECE 559: Optimization for Signal Processing &amp; ML · Winter 2026</div>
+        <p class="desc">
+          Formulated 2D double-integrator navigation with an ℓ<sub>2,1</sub>
+          group-sparsity penalty on control, so the robot coasts between brief
+          actuation bursts, and solved it with a two-block ADMM splitting
+          (dynamics QP, obstacle projection, block soft-thresholding) with
+          over-relaxation and adaptive penalty scaling. The method delivers
+          sparsity — about 60% zero-input timesteps at lower control effort than
+          quadratic MPC — but diagnostics that score safety separately on the
+          dynamically feasible trajectory and on the projected auxiliary one
+          expose a structural failure: across 10 randomized environments the
+          auxiliary trajectory is collision-free in 8/10 while the real one is
+          collision-free in 0/10. Sweeps over λ and iteration budget show the gap
+          does not close with more iterations, pointing to greedy non-convex
+          projection rather than early stopping.
+        </p>
+        <div class="meta-links">
+          <a href="assets/pdf/ECE_559_project.pdf">report</a>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="title">Replicating and Extending SimGRL: Robustness in Visual RL under Dynamic Scene Perturbations</div>
+        <div class="authors">Team course project · EECS 498: Machine Learning Research Experience · Fall 2025</div>
+        <p class="desc">
+          Replicated SimGRL (NeurIPS 2024) on DMControl-GB Walker Walk under a
+          60K-step compute budget on the Great Lakes cluster: SimGRL beat the
+          SVEA baseline in every evaluation mode, by 107% on Video Hard,
+          matching the original paper's trends. The team then tested four
+          augmentation extensions. My part was Hybrid-SRO, which adds per-frame
+          photometric perturbations (color jitter, grayscale, blur, pixel
+          shifts) to SimGRL's background overlays. I implemented and tuned it and
+          ran its experiments. It did not beat SimGRL on average, but it cut
+          the across-seed standard deviation from about 75 to about 24 and came
+          within 2% of SimGRL on Video Hard.
+        </p>
+        <div class="meta-links">
+          <a href="assets/pdf/498_final_paper_group_5.pdf">paper</a>
+          <a href="https://github.com/xiyanzho/498research">code</a>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="title">Bayesian Optimization: Max-value Entropy Search vs. Expected Improvement</div>
+        <div class="authors">Course project · EECS 498: Bayesian Machine Learning · Winter 2026</div>
+        <p class="desc">
+          Implemented Gaussian-process Bayesian optimization from scratch (NumPy/SciPy):
+          marginal-likelihood hyperparameter fitting with BIC-based kernel
+          selection, expected improvement, and a re-implementation of Max-value
+          Entropy Search (Wang &amp; Jegelka, ICML 2017). On hyperparameter-tuning
+          benchmarks MES unexpectedly underperformed EI; the likely cause is a
+          degenerate fitted GP lengthscale, which leaves MES little structure
+          from which to estimate the maximum.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== TEACHING ===================== -->
+    <section id="teaching">
+      <h2>teaching</h2>
+
+      <div class="entry">
+        <div class="title">MATH 571 — Numerical Linear Algebra <span class="note">(graduate course)</span></div>
+        <div class="authors">Grader · Fall 2025</div>
+      </div>
+
+      <div class="entry">
+        <div class="title">MATH 371 — Numerical Methods</div>
+        <div class="authors">Grader · Fall 2025, Winter 2026, Fall 2026</div>
+      </div>
+
+      <div class="entry">
+        <div class="title">EECS 203 — Discrete Mathematics</div>
+        <div class="authors">Grader · Fall 2026</div>
+      </div>
+
+      <div class="entry">
+        <div class="title">Math Lab Tutor</div>
+        <div class="authors">University of Michigan · Fall 2024 – Winter 2026</div>
+      </div>
+    </section>
+
+    <!-- ===================== BLOG ===================== -->
+    <section id="blog">
+      <h2>notes &amp; writing</h2>
+      <ul class="posts">
+        <!-- Add a new <li> per post; newest at the top. Example:
+        <li>
+          <a href="blog/my-post.html">Post title</a>
+          <span class="date">2026-08-01</span>
+        </li> -->
+      </ul>
+      <p class="empty-note"><em>Coming soon.</em></p>
+    </section>
+
+    <!-- ===================== FOOTER ===================== -->
+    <footer>
+      © 2026 Xiyan Zhou
+    </footer>
+
+  </div>
+</body>
+</html>

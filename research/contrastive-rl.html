@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Goal-Conditioned Contrastive RL — Xiyan Zhou</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Goal-conditioned contrastive reinforcement learning in discrete action spaces — project notes on the disjunctive goal effect.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css?v=14">
+</head>
+<body>
+  <div class="wrap">
+
+    <a class="back-link" href="../index.html">← back</a>
+
+    <article class="post">
+      <h1>Goal-Conditioned Contrastive Reinforcement Learning in Discrete Action Spaces</h1>
+      <div class="post-date">
+        Research Assistant · advised by <a href="https://kellenkanarios.com/index/">Kellen Kanarios</a> · Jan 2026 – Present
+      </div>
+
+      <p>
+        Goal-conditioned RL asks for a single policy <em>π(a | s, g)</em> that can
+        reach any goal <em>g</em>, learned from unlabeled experience with no reward
+        signal beyond "did you arrive." Contrastive RL (Eysenbach et al., 2022)
+        approaches this without temporal-difference learning at all: instead of
+        bootstrapping a value function, it trains a critic by classification, so
+        that <em>f(s, a, g)</em> estimates the density ratio of the discounted
+        future-state occupancy — how much more likely <em>g</em> is to occur later
+        given action <em>a</em> in state <em>s</em>, relative to a random goal.
+      </p>
+      <p>
+        This project reimplements that method in JAX, adapts it to discrete
+        action spaces, and asks why it fails on some discrete goal-conditioned
+        tasks. The answer we arrived at is one measurable mechanism: <strong>a
+        goal-conditioned critic stops discriminating between actions when the
+        goal admits more than one satisfying state.</strong> My role is
+        implementation and experiment design; Kellen sets algorithmic direction.
+      </p>
+
+      <h2>method</h2>
+      <p>
+        The critic is bilinear, <em>f(s, a, g) = φ(s, a) · ψ(g) / √d</em>, with
+        φ and ψ as ensembled MLP encoders. Positives are drawn by sampling, for
+        each timestep, a future goal from the same trajectory under geometric
+        weighting <em>γ<sup>Δt</sup></em>; negatives are the other goals in the
+        batch, giving a B×B logit matrix trained under InfoNCE. For discrete
+        actions the actor is trained through a Gumbel-Softmax relaxation with an
+        annealed temperature and an adaptive entropy coefficient. The whole
+        training loop is jitted end-to-end over vmapped environments.
+      </p>
+      <p>
+        Rather than working on someone else's benchmark, I built 8×8 grid worlds
+        in which goal structure is a controllable variable: a navigation task, a
+        foraging task with wood / water / diamond resources and count goals
+        ("hold one wood"), and a key–door task. As a matched non-contrastive
+        baseline I built a goal-conditioned Double-DQN with hindsight replay on
+        <code>rlax</code>, sharing the environments, buffer, batch size, horizons
+        and evaluation.
+      </p>
+
+      <h2>the finding</h2>
+      <p>
+        Some goals are satisfied by exactly one world state ("stand on this
+        cell"); others by several ("hold one wood" when two wood tiles exist).
+        Performance degrades as the number of satisfiers grows — and the
+        degradation lives in the critic, not the policy.
+      </p>
+      <p>
+        To show that directly rather than infer it from returns, I use a probe
+        I call <strong>critic lift</strong>: over 65,536 states, how often the
+        critic's greedy action is the one that actually moves toward the correct
+        target, above what the critic's own action bias would produce by chance.
+        Across 15 foraging runs, lift separates cleanly by satisfier count —
+        the lowest one-satisfier run (0.139) sits above the highest two-satisfier
+        run (0.076) — while the one-satisfier configurations span 100% to 80% of
+        achievable performance. Lift does not fall as the task gets harder; it
+        falls when a second satisfier appears.
+      </p>
+
+      <h3>foraging ablation ladder</h3>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Rung</th><th>Satisfiers</th><th>Success</th><th>Lift</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>One tile, fixed layout</td><td>1</td><td>0.991</td><td>+0.263</td></tr>
+            <tr><td>+ randomized layout</td><td>1</td><td>0.832</td><td>+0.167</td></tr>
+            <tr><td>+ distractor tile</td><td>1</td><td>0.818</td><td>+0.190</td></tr>
+            <tr><td>+ second target tile</td><td>2</td><td>0.724</td><td>+0.055</td></tr>
+            <tr><td>+ two of every resource</td><td>2</td><td>0.647</td><td>+0.057</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>key–door dose-response</h3>
+      <p>
+        The same ordering replicates in a second environment with a different
+        goal encoding, where any one of <em>k</em> doors satisfies the goal.
+        Success and lift fall monotonically, with non-overlapping ranges across
+        seeds at every level.
+      </p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Doors</th><th>Success</th><th>Seed range</th><th>Lift</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>0.797</td><td>[0.750, 0.844]</td><td>+0.167</td></tr>
+            <tr><td>2</td><td>0.577</td><td>[0.535, 0.617]</td><td>+0.127</td></tr>
+            <tr><td>3</td><td>0.280</td><td>[0.223, 0.324]</td><td>+0.071</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>the isolating control</h3>
+      <p>
+        Adding a tile makes the board busier <em>and</em> can make the goal
+        ambiguous. To separate the two, I hold the environment, agent and added
+        tile fixed and change only the goal's form. A count goal gains a second
+        satisfier when a second wood tile appears; a positional goal stays unique
+        however many tiles exist.
+      </p>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Goal form</th><th>1 tile</th><th>2 tiles</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Count (gains a satisfier)</td><td>0.818</td><td>0.724 — drops, ranges disjoint</td></tr>
+            <tr><td>Positional (stays unique)</td><td>0.711</td><td>0.682 — flat, ranges overlap</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>not unique to contrastive learning</h3>
+      <p>
+        The Double-DQN baseline degrades by a comparable factor on the same
+        manipulation (×0.64, against ×0.88 for contrastive RL). So this is a
+        property of goal-conditioned value learning rather than an artifact of
+        the contrastive objective — a broader claim, and a narrower one than the
+        project set out to make. It speaks to Matthews et al.
+        (<em>Goal-Conditioned Agents that Learn Everything All at Once</em>,
+        ICML 2026), who argue contrastive RL cannot natively handle
+        all-goals learning: there is a concrete, measurable mechanism behind one
+        such failure, it is graded rather than categorical, and it is shared with
+        non-contrastive methods.
+      </p>
+
+      <h2>correcting ourselves</h2>
+      <p>
+        An earlier version of these notes reported that layout randomization
+        collapsed foraging success from 0.68 to 0.08. That result did not
+        survive. A seven-run configuration screen found that six of seven
+        single-knob changes beat the published configuration, and one — the
+        direction of the InfoNCE loss (forward rather than backward) — took the
+        headline task from 0.342 to 0.816. Earlier ablations had been measuring
+        a bad configuration.
+      </p>
+      <p>
+        Re-running the full ladder, key–door and the positional control on the
+        corrected configuration withdrew three claims: that contrastive RL falls
+        below its own random floor (it reaches 65% of achievable), that an
+        untuned baseline beats it threefold (0.977 against 0.818, and the tuned
+        method wins on the two-satisfier arm), and that a single statistic orders
+        both environments monotonically (what holds is a within-environment
+        separation). The satisfier effect itself survived all three corrections,
+        in a cleaner form. The broader lesson: ablation ladders built on an
+        untuned configuration can inflate an effect roughly threefold.
+      </p>
+      <p>
+        Along the way a long list of explanations was proposed, tested and ruled
+        out — false-negative contamination, goal aliasing, causal chain depth,
+        respawn randomization, board density, centroid averaging, and critic
+        goal-blindness among them. Several early failures were self-inflicted:
+        a replay buffer storing discrete actions as <code>[a, 0, 0]</code> rather
+        than one-hot, and a task in which 57% of commanded goals were unreachable.
+      </p>
+
+      <h2>a metric that lies</h2>
+      <p>
+        A finding that recurs across environments: the contrastive training
+        metric is decoupled from control quality, and at times inverted. On
+        navigation, an action-blind critic scored 0.55 contrastive accuracy and
+        0.03 success; a correct one scored 0.08 and 0.85. Contrastive accuracy
+        asks whether the true future state outranks other states in the batch,
+        which a critic ignoring its action argument can do perfectly well.
+        Control requires ranking actions against each other at a fixed state and
+        goal, and InfoNCE never places two same-state, different-action pairs in
+        contrast. This is why the diagnostics I found most useful bypass the
+        training loss entirely — rolling out
+        <em>argmax<sub>a</sub> f(s, a, g)</em> directly, and probes like critic
+        lift.
+      </p>
+
+      <h2>status and limitations</h2>
+      <p>
+        120 completed runs at 20M steps, every headline claim at three or more
+        seeds and reproducible from logs by one script. We are preparing a
+        preprint framed as a mechanism paper: it names a variable (satisfier
+        multiplicity), isolates it with a control, measures it inside the critic,
+        and replicates it in a second environment and a second algorithm family.
+      </p>
+      <p>
+        Stated plainly: all results come from one critic family on two 8×8 grid
+        worlds, so every claim is a grid-world claim until tested more broadly.
+        Tuning is asymmetric — contrastive RL received a seven-configuration
+        screen, the baseline one knob on one arm. Two ablation rungs are still on
+        the old configuration, and a centroid-averaging signal reappeared on a
+        single seed at three doors after being refuted twice; both are open.
+      </p>
+    </article>
+
+    <footer>
+      © 2026 Xiyan Zhou
+    </footer>
+
+  </div>
+</body>
+</html>
