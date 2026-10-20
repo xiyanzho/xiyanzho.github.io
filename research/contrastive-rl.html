@@ -32,12 +32,15 @@
         given action <em>a</em> in state <em>s</em>, relative to a random goal.
       </p>
       <p>
-        This project reimplements that method in JAX, adapts it to discrete
-        action spaces, and asks why it fails on some discrete goal-conditioned
+        This project builds on a JAX implementation of that method for discrete
+        action spaces, written by Kellen Kanarios, and asks why it fails on some discrete goal-conditioned
         tasks. The answer we arrived at is one measurable mechanism: <strong>a
         goal-conditioned critic stops discriminating between actions when the
-        goal admits more than one satisfying state.</strong> My role is
-        implementation and experiment design; Kellen sets algorithmic direction.
+        goal admits more than one satisfying state.</strong> Kellen wrote
+        the original implementation, including the critic, InfoNCE training loop
+        and a Gumbel-Softmax actor, and sets the algorithmic direction. I built
+        the environments, goal encodings and baseline, debugged and extended the
+        agent, and designed and ran the experiments.
       </p>
 
       <h2>method</h2>
@@ -47,8 +50,9 @@
         each timestep, a future goal from the same trajectory under geometric
         weighting <em>γ<sup>Δt</sup></em>; negatives are the other goals in the
         batch, giving a B×B logit matrix trained under InfoNCE. For discrete
-        actions the actor is trained through a Gumbel-Softmax relaxation with an
-        annealed temperature and an adaptive entropy coefficient. The whole
+        actions the actor is trained on the expected critic value over all
+        actions under its softmax policy, with a learned entropy coefficient;
+        Gumbel-Softmax sampling is used for data collection. The whole
         training loop is jitted end-to-end over vmapped environments.
       </p>
       <p>
@@ -198,7 +202,7 @@
 
       <h2>status and limitations</h2>
       <p>
-        120 completed runs at 20M steps, every headline claim at three or more
+        About 120 completed runs at 20M steps, every headline claim at three or more
         seeds and reproducible from logs by one script. We are preparing a
         preprint framed as a mechanism paper: it names a variable (satisfier
         multiplicity), isolates it with a control, measures it inside the critic,
