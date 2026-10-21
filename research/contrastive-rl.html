@@ -56,7 +56,8 @@
         training loop is jitted end-to-end over vmapped environments.
       </p>
       <p>
-        Rather than working on someone else's benchmark, I built 8×8 grid worlds
+        Rather than working on someone else's benchmark, I built small grid worlds
+        (8×8 navigation and foraging, 6×6 key–door)
         in which goal structure is a controllable variable: a navigation task, a
         foraging task with wood / water / diamond resources and count goals
         ("hold one wood"), and a key–door task. As a matched non-contrastive
@@ -146,12 +147,13 @@
         manipulation (×0.64, against ×0.88 for contrastive RL). So this is a
         property of goal-conditioned value learning rather than an artifact of
         the contrastive objective — a broader claim, and a narrower one than the
-        project set out to make. It speaks to Matthews et al.
+        project set out to make. It relates to Matthews et al.
         (<em>Goal-Conditioned Agents that Learn Everything All at Once</em>,
-        ICML 2026), who argue contrastive RL cannot natively handle
-        all-goals learning: there is a concrete, measurable mechanism behind one
-        such failure, it is graded rather than categorical, and it is shared with
-        non-contrastive methods.
+        ICML 2026), who argue that methods assuming a functional state–goal
+        mapping, such as contrastive RL, cannot natively handle goals that many
+        states satisfy. Our results suggest one measurable mechanism behind such
+        difficulty: it is graded rather than categorical, and it also affects a
+        TD baseline.
       </p>
 
       <h2>correcting ourselves</h2>
@@ -203,14 +205,14 @@
       <h2>status and limitations</h2>
       <p>
         About 120 completed runs at 20M steps, every headline claim at three or more
-        seeds and reproducible from logs by one script. We are preparing a
-        preprint framed as a mechanism paper: it names a variable (satisfier
-        multiplicity), isolates it with a control, measures it inside the critic,
-        and replicates it in a second environment and a second algorithm family.
+        seeds and reproducible from logs by one script. The aim is a
+        mechanism-level result: it names a variable (satisfier multiplicity),
+        isolates it with a control, measures it inside the critic, and replicates
+        it in a second environment and a second algorithm family.
       </p>
       <p>
-        Stated plainly: all results come from one critic family on two 8×8 grid
-        worlds, so every claim is a grid-world claim until tested more broadly.
+        Stated plainly: all results come from one critic family on small grid worlds
+        (8×8 foraging, 6×6 key–door), so every claim is a grid-world claim until tested more broadly.
         Tuning is asymmetric — contrastive RL received a seven-configuration
         screen, the baseline one knob on one arm. Two ablation rungs are still on
         the old configuration, and a centroid-averaging signal reappeared on a
